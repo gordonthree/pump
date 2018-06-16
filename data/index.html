@@ -23,31 +23,31 @@
                 </ul>
             </div>
             <div data-role="header">
-                <h1>
+                <h1 id="headerText">
                     Pumping Session
                 </h1>
             </div>
             <div data-role="main" class="ui-content">
                 <div class="ui-field-contain" id="sliders">
                     <div data-role="rangeslider">
-                        <label for="vstart">Pressure Range:</label> 
-                        	<input type="range" data-highlight="true" name="vstart" id="vstart" value="150" min="100" step="10" max="1000" class="numbox"> 
-                    	<label for="vend">Pressure Range:</label> 
+                        <label for="vstart">Pressure:</label>
+                        	<input type="range" data-highlight="true" name="vstart" id="vstart" value="150" min="100" step="10" max="1000" class="numbox">
+                    	<label for="vend">Pressure:</label>
                         	<input type="range" data-highlight="true" name="vend" id="vend" value="350" min="200" step="10" max="1000" class="numbox">
                     </div>
-                    <label for="vdur">Pumping Period:</label> 
-                    	<input type="range" name="vdur" id="vdur" value="10" min="0" max="20" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox"> 
-                	<label for="vrest">Rest Period:</label> 
-                		<input type="range" name="vrest" id="vrest" value="10" min="0" max="60" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox"> 
-            		<label for="vreps">Pumping Reps:</label> 
+                    <label for="vdur">Duration:</label>
+                    	<input type="range" name="vdur" id="vdur" value="10" min="2" max="60" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
+                	<label for="vrest">Rest:</label>
+                		<input type="range" name="vrest" id="vrest" value="10" min="0" max="60" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
+            		<label for="vreps"> Reps:</label>
             			<input type="range" name="vreps" id="vreps" value="4" min="1" max="10" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
                 </div>
                 <div id="action" data-role="controlgroup" data-type="horizontal">
-                    <button name="action" id="startbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Start</button> 
-                    <button name="action" id="pausebtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Pause</button> 
-                    <button name="action" id="stopbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Stop</button> 
+                    <button name="action" id="startbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Start</button>
+                    <button name="action" id="pausebtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Pause</button>
+                    <button name="action" id="stopbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Stop</button>
                     <a href="#diagPanel" id="logbtn" class="ui-btn ui-btn-inline ui-corner-all ui-shadow">Log</a>
-                </div>Pressure graph:
+                </div>Graph:
                 <div id="gChart" class="ui-field-contain">
                     <canvas id="chart" width="400" height="100"></canvas>
                 </div>

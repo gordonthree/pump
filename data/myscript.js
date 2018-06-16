@@ -3,15 +3,15 @@ var pumpAvg = 0;
 
 $(document).ready(function() {
       var hostName = location.hostname;
-      
-      if (hostName==="") hostName="192.168.2.108";
+
+      if (hostName==="") hostName="192.168.2.20";
 
       //alert(hostName);
       /*The user has WebSockets!!! */
 
       var canvas = document.getElementById("chart");
       canvas.width = $("#gChart").width();
-      
+
       connect();
 
       var smoothie = new SmoothieChart({
@@ -39,12 +39,13 @@ $(document).ready(function() {
               socket.onopen = function(){
              	 message('<li class="event">Socket Status: '+socket.readyState+' (open)');
                $("#footerText").html("Connected!");
+               $("#headerText").html("Pumping Session<br><small>Connected to " + hostName + "</small>");
               }
 
               socket.onmessage = function(msg){
                var datamsg = msg.data + '';
                var cmds = datamsg.split("=");
-               
+
                switch(cmds[0]) {
                 case 'pres':
                   var adcvpres = cmds[1];
@@ -63,16 +64,21 @@ $(document).ready(function() {
                   var mins =parseInt(cmds[1] / 60);
                   var secs =cmds[1]-(mins * 60);
                   if (secs < 10) secs="0"+secs;
-                  $("#footerText").html("Session Running<br>" +mins +":"+ secs+ " rest time remaining");
+                  $("#footerText").html("Session Running<br><small>" +mins +":"+ secs+ " rest time remaining</small>");
                   break;
                 case 'remain':
                   var mins =parseInt(cmds[1] / 60);
                   var secs =cmds[1]-(mins * 60);
                   if (secs < 10) secs="0"+secs;
-                  $("#footerText").html("Session Running<br>" +mins +":"+ secs+ " pump time remaining");
+                  $("#footerText").html("Session Running<br><small>" +mins +":"+ secs+ " pump time remaining</small>");
                   break;
                 case 'pumping':
                   pumpAvg = cmds[1];
+                  break;
+                case 'time':
+                  var d = new Date(cmds[1]*1000); // convert unix time to javascript time
+                  var local = d.toLocaleTimeString("en-US", {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                  $("#headerText").html("Connected to " + hostName + "<br><small>" + local + " </small>");
                   break;
                 case 'settings':
                   var settings = cmds[1].split(',');
@@ -83,20 +89,21 @@ $(document).ready(function() {
                   $( "#vrest" ).val(settings[3]).slider("refresh");
                   $( "#vreps" ).val(settings[4]).slider("refresh");
 
-                  message('<li class="message">Settings Updated'); 
+                  message('<li class="message">Settings Updated');
                   break;
 
                 default:
-                  message('<li class="message">Msg: '+msg.data); 
+                  message('<li class="message">Msg: '+msg.data);
                 }
               }
-              
+
 
               socket.onclose = function(){
               	message('<li class="event">Socket Status: '+socket.readyState+' (Closed)');
                  $("#footerText").html("Connection lost!");
+                 $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
                  setTimeout(connect(), 2000);
-              }			
+              }
 
           } catch(exception){
              message('<li>Error'+exception);
@@ -107,7 +114,7 @@ $(document).ready(function() {
             $('#diagList').listview("refresh");
           }
 
-       
+
           $(".numbox").on("slidestop", function(){
             var myName = $( this ).attr('name');
             var myValue = $( this ).val();

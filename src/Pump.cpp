@@ -34,12 +34,12 @@ const int timeZone = -4;  // Eastern Daylight Time (USA)
 const char* ssid = "Tell my WiFi I love her";
 const char* password = "2317239216";
 const char* mqtt_server = "192.168.2.30";
-const char* mySub = "selfbon/pump01/cmd";
-const char* myVmin = "selfbon/pump01/vmin";
-const char* myVmax = "selfbon/pump01/vmax";
-const char* myVpwr = "selfbon/pump01/vpwr";
-const char* myPub = "selfbon/pump01/msg";
-const char* myPres = "selfbon/pump01/pres";
+const char* mySub = "home/pump01/cmd";
+const char* myVmin = "home/pump01/vmin";
+const char* myVmax = "home/pump01/vmax";
+const char* myVpwr = "home/pump01/vpwr";
+const char* myPub = "home/pump01/msg";
+const char* myPres = "home/pump01/pres";
 const char* clientid = "pump01";
 
 long lastMsg = 0;
@@ -617,7 +617,8 @@ void loop() {
   char buf[16];
   sprintf(buf, "pres=%d", thePres);
   socketTxt("pres=%d", thePres);
-
+  socketTxt("time=%d", getTime());
+  
   if (sendPres) {
     client.publish(myPres, buf);
     sendPres=false;
