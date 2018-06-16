@@ -60,30 +60,26 @@ int vmax = 0;
 int vdiff = 0;
 int vinterval = 0;
 int pumpEnable = 0;
-byte vrunning = 0;
-byte i2cbuff[16];
+uint8_t vrunning = 0;
+char i2cbuff[16];
 int thePres = 0;
 
 unsigned int pumpSpecs[8];
-boolean clientCon = false;
+uint8_t clientCon = false;
 char txtMsg[32];
-byte ledState = 0;
+uint8_t ledState = 0;
 char theURL[200];
-boolean doUpdate = false;
-boolean setPolo = false;
-boolean sendTxt = false;
-boolean mqttControl = false;
-boolean sendPres = false;
+uint8_t doUpdate = false;
+uint8_t setPolo = false;
+uint8_t sendTxt = false;
+uint8_t mqttControl = false;
+uint8_t sendPres = false;
 
-time_t vstartTime = 0;
-time_t vendTime = 0;
-time_t vlastInt = 0;
+long vstartTime = 0, vendTime = 0, vlastInt = 0;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 ESP8266WebServer server(80);
-
-unsigned int localPort = 2390;      // local port to listen for UDP packets
 
 WebSocketsServer webSocket = WebSocketsServer(81);
 
@@ -344,7 +340,7 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
 
   //webSocket.sendTXT(0, cmdStr);
 
-  if (cmdTxt != "action") { // action command uses text values, don't try to change it to integer
+  if ((cmdTxt != "action") && (vrunning == 0)) { // action command uses text values, don't try to change it to integer
     int i = cmdVal.toInt();
     if      (cmdTxt == "vstart") vstart = i;
     else if (cmdTxt == "vend")   vend = i;
@@ -501,6 +497,7 @@ void doPumping() {
           vlastInt = getTime() + (vrest * 60); // new start time is now plus rest period in seconds
           socketTxt("rest=%d", vlastInt - getTime());
           vreps--; // one less rep
+          socketTxt("repsremain=%d", vreps);
           vrunning = 1; // go back to startup condition
         } else { // no more reps
           socketTxt("session=complete", 0);
@@ -542,7 +539,7 @@ void setup_wifi() {
 
   // start the webserver
   server.begin();
-  udp.begin(localPort);
+  // udp.begin(localPort);
   ArduinoOTA.setHostname("pump01");
 
 
