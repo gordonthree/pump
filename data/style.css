@@ -15,12 +15,14 @@ body {
 #chatLog p {
     margin:0;
 }
-.event {
-    color:#999;
+li.event {
+    color:#000000;
 }
-.warning{
-    font-weight:bold;
-    color:#CCC;
+li.message {
+    color:#999999;
+}
+li.warning{
+    color:#ff0000;
 }
 .numbox{
     width:100px;

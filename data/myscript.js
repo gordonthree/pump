@@ -34,10 +34,10 @@ $(document).ready(function() {
               var socket = new WebSocket(host);
 
               $("#footerText").html("Connecting...");
-              message('<li class="event">Socket Status: '+socket.readyState);
+              message('<li class="message"><img src="message.png" alt="Message" class="ui-li-icon">Socket Status: '+socket.readyState);
 
               socket.onopen = function(){
-             	 message('<li class="event">Socket Status: '+socket.readyState+' (open)');
+             	 message('<li class="message"><img src="message.png" alt="Message" class="ui-li-icon">Socket Status: '+socket.readyState+' (open)');
                $("#footerText").html("Connected!");
                $("#headerText").html("Pumping Session<br><small>Connected to " + hostName + "</small>");
               }
@@ -56,15 +56,25 @@ $(document).ready(function() {
                   /*$('#adcvbatt').val(msg.data.substring(1, (msg.data.length)));*/
                   break;
                 case 'session':
-                  if (cmds[1]=="start") $("#footerText").html("Session Started");
-                  else if(cmds[1]=="stop") $("#footerText").html("Session Stopped");
-                  else if(cmds[1]=="complete") $("#footerText").html("Session Completed");
+                  if (cmds[1]=="start") {
+                    $("#footerText").html("Session Started");
+                    message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Session Started');
+                  }
+                  else if(cmds[1]=="stop") {
+                    $("#footerText").html("Session Stopped");
+                    message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Session Stopped');
+                  }
+                  else if(cmds[1]=="complete") {
+                    $("#footerText").html("Session Completed");
+                    message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Session Completed');
+                  }
                   break;
                 case 'rest':
                   var mins =parseInt(cmds[1] / 60);
                   var secs =cmds[1]-(mins * 60);
                   if (secs < 10) secs="0"+secs;
                   $("#footerText").html("Session Running<br><small>" +mins +":"+ secs+ " rest time remaining</small>");
+                  message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Start rest period');
                   break;
                 case 'remain':
                   var mins =parseInt(cmds[1] / 60);
@@ -80,6 +90,12 @@ $(document).ready(function() {
                   var local = d.toLocaleTimeString("en-US", {hour: '2-digit', minute:'2-digit', second:'2-digit'});
                   $("#headerText").html("Connected to " + hostName + "<br><small>" + local + " </small>");
                   break;
+                case 'boottime':
+                    var bootTime = (cmds[1]*1000); // convert unix time to javascript time
+                    var d = new Date(bootTime);
+                    var local = d.toLocaleDateString("en-US", {month: '2-digit', day: 'numeric', hour: '2-digit', minute:'2-digit'})
+                    message('<li class="message"><img src="message.png" alt="Message" class="ui-li-icon">Last reboot: ' + local);
+                    break;
                 case 'settings':
                   var settings = cmds[1].split(',');
 
@@ -89,24 +105,24 @@ $(document).ready(function() {
                   $( "#vrest" ).val(settings[3]).slider("refresh");
                   $( "#vreps" ).val(settings[4]).slider("refresh");
 
-                  message('<li class="message">Settings Updated');
+                  message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Settings Updated');
                   break;
 
                 default:
-                  message('<li class="message">Msg: '+msg.data);
+                  message('<li class="message"><img src="message.png" alt="Message" class="ui-li-icon">'+msg.data);
                 }
               }
 
 
               socket.onclose = function(){
-              	message('<li class="event">Socket Status: '+socket.readyState+' (Closed)');
+              	message('<li class="action"><img src="error.png" alt="Error" class="ui-li-icon">Socket Status: '+socket.readyState+' (Closed)');
                  $("#footerText").html("Connection lost!");
                  $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
                  setTimeout(connect(), 2000);
               }
 
           } catch(exception){
-             message('<li>Error'+exception);
+             message('<li class="action"><img src="error.png" alt="Error" class="ui-li-icon">Error: '+exception);
           }
 
           function message(msg){
@@ -120,7 +136,7 @@ $(document).ready(function() {
             var myValue = $( this ).val();
             var myMsg = myName +"="+ myValue;
             socket.send(myMsg);
-            message('<li class="message">Sent: '+myMsg);
+            message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Sent: '+myMsg);
           });
 
           $(":button").click(function(){
@@ -133,11 +149,11 @@ $(document).ready(function() {
                 var myValue = $( this ).val();
                 var myMsg = myName +"="+ myValue;
                 socket.send(myMsg);
-                message('<li message="event">Sent: '+myMsg);
+                message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Sent: '+myMsg);
               });
             }
             socket.send(myAction);
-            message('<li class="message">Sent: '+myAction);
+            message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Sent: '+myAction);
             event.preventDefault();
           });
 

@@ -34,12 +34,8 @@ const int timeZone = -4;  // Eastern Daylight Time (USA)
 const char* ssid = "Tell my WiFi I love her";
 const char* password = "2317239216";
 const char* mqtt_server = "192.168.2.30";
+const char* mqttbase = "home/pump01";
 const char* mySub = "home/pump01/cmd";
-const char* myVmin = "home/pump01/vmin";
-const char* myVmax = "home/pump01/vmax";
-const char* myVpwr = "home/pump01/vpwr";
-const char* myPub = "home/pump01/msg";
-const char* myPres = "home/pump01/pres";
 const char* clientid = "pump01";
 
 long lastMsg = 0;
@@ -69,16 +65,19 @@ uint8_t clientCon = false;
 char txtMsg[32];
 uint8_t ledState = 0;
 char theURL[200];
+uint8_t setReset = false;
 uint8_t doUpdate = false;
 uint8_t setPolo = false;
 uint8_t sendTxt = false;
 uint8_t mqttControl = false;
 uint8_t sendPres = false;
+uint8_t sendUptime = true;
+uint16_t loopCnt = 0; // update on first run
 
-long vstartTime = 0, vendTime = 0, vlastInt = 0;
+long bootTime = 0, vstartTime = 0, vendTime = 0, vlastInt = 0;
 
 WiFiClient espClient;
-PubSubClient client(espClient);
+PubSubClient mqtt(espClient);
 ESP8266WebServer server(80);
 
 WebSocketsServer webSocket = WebSocketsServer(81);
@@ -227,6 +226,31 @@ void socketTxt(char* str, int num) {
   }
 }
 
+void mqttPrintStr(char* _topic, char* myStr) {
+  char myTopic[64];
+  sprintf(myTopic, "%s/%s", mqttbase, _topic);
+  mqtt.publish(myTopic, myStr);
+}
+
+void mqttPrintInt(char* myTopic, int myNum) {
+  char myStr[8];
+  sprintf(myStr, "%u", myNum);
+  mqttPrintStr(myTopic, myStr);
+}
+
+void prtUptime() {
+  socketTxt("boottime=%d", bootTime);
+  mqttPrintInt("boottime", bootTime);
+}
+
+void doReset() { // reboot on command
+      mqttPrintStr("msg", "Rebooting!");
+      socketTxt("Rebooting!", 0);
+      delay(50);
+      ESP.reset();
+      delay(5000); // allow time for reboot
+}
+
 void httpUpdater() {
   t_httpUpdate_return ret = ESPhttpUpdate.update(theURL);
   //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin");
@@ -235,16 +259,16 @@ void httpUpdater() {
       case HTTP_UPDATE_FAILED:
           char buf[60];
           sprintf(buf, "HTTP_UPDATE_FAILED Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-          client.publish(myPub, buf);
+          mqttPrintStr("msg", buf);
+
           break;
 
       case HTTP_UPDATE_NO_UPDATES:
-          client.publish(myPub, "HTTP_UPDATE_NO_UPDATES");
+          mqttPrintStr("msg", "HTTP_UPDATE_NO_UPDATES");
           break;
 
       case HTTP_UPDATE_OK:
-          client.publish(myPub, "HTTP_UPDATE_OK");
-          client.loop();
+          mqttPrintStr("msg", "HTTP_UPDATE_OK");
           break;
   }
 }
@@ -366,8 +390,7 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
       cmdVal.toCharArray(theURL, cmdVal.length()+1);
       doUpdate = true;
     }
-
-  } else {
+  } else { // handle action commands here
     if (cmdVal == "Start") {
       vstartTime = getTime(); // record start time
       vlastInt = getTime();
@@ -377,20 +400,19 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
       saveSettings(); // record these pump settings
     } else
 
-    if (cmdVal == "Stop") {
+    if (cmdVal == "Stop") { // stop session
       vrunning = 0;
       socketTxt("session=stop", 0);
     } else
 
-    if (cmdVal == "Pause") {
+    if (cmdVal == "Pause") { // pause session
       vendTime = getTime() - 10; // fake end of rep/session
       socketTxt("session=pause", 0);
     }
-
-    else if (cmdVal = "Save")  saveSettings();
-    else if (cmdVal = "Load")  loadSettings();
-    else if (cmdVal = "Print") printSettings();
-
+    else if (cmdVal == "Reboot") doReset(); // reboot controller
+    else if (cmdVal = "Save")    saveSettings(); // save to eeprom
+    else if (cmdVal = "Load")    loadSettings(); // load from eeprom
+    else if (cmdVal = "Print")   printSettings(); // print config
   }
 }
 
@@ -403,15 +425,16 @@ void callback(char* topic, byte* payload, unsigned int len) {
 
 void reconnect() {
   // Loop until we're reconnected
-  while (!client.connected()) {
+  while (!mqtt.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect(clientid)) {
+    if (mqtt.connect(clientid)) {
       Serial.println("connected");
+      sendUptime = true;
       // Once connected, publish an announcement...
-      client.publish(myPub, "Hello, world!");
+      mqttPrintStr("msg", "Hello, world!");
       // ... and resubscribe
-      client.subscribe(mySub);
+      mqtt.subscribe(mySub);
     } else {
       // Wait 5 seconds before retrying
       delay(5000);
@@ -432,6 +455,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                 // send message to client
                 webSocket.sendTXT(num, "Connected");
                 socketTxt("time=%d", getTime());
+                sendUptime = true;
                 printSettings();
 
                 clientCon = true;
@@ -584,8 +608,8 @@ void setup() {
 
   i2c_scan();
 
-  client.setServer(mqtt_server, 1883); // setup mqqt stuff
-  client.setCallback(callback);
+  mqtt.setServer(mqtt_server, 1883); // setup mqqt stuff
+  mqtt.setCallback(callback);
 
   Serial.print("Starting webSocket server... ");
   webSocket.begin();
@@ -598,40 +622,40 @@ void setup() {
 
   Serial.println("Pumping controller online");
 
+  bootTime = getTime(); // save the time of last reboot
 }
 
 void loop() {
-  if (!client.connected()) {
+  if (!mqtt.connected()) {
     reconnect(); // check mqqt status
   }
 
   ArduinoOTA.handle();
   // check for incomming client connections frequently in the main loop:
   server.handleClient();
-  client.loop();
+  mqtt.loop();
   webSocket.loop();
 
   if (!mqttControl) doPumping(); // if not under mqtt control, implement onboard controls
 
   thePres = i2c_wordread(VAC, ADCAN7);
-  char buf[16];
-  sprintf(buf, "pres=%d", thePres);
+
   socketTxt("pres=%d", thePres);
   socketTxt("time=%d", getTime());
-  
+
   if (sendPres) {
-    client.publish(myPres, buf);
+    mqttPrintInt("pres", thePres);
     sendPres=false;
   }
 
   if (setPolo) {
-    client.publish(myPub, "Polo");
+    mqttPrintStr("msg", "Polo");
     setPolo=false;
   }
 
   if (sendTxt) {
     sendTxt = false;
-    client.publish(myPub, txtMsg);
+    mqttPrintStr("msg", txtMsg);
   }
 
   if (doUpdate) { // test for http update flag, received url via mqtt
@@ -639,6 +663,13 @@ void loop() {
     httpUpdater(); // call updater
   }
 
+  if (setReset) doReset;
+
+  if ((loopCnt++ > 3600) || sendUptime) { // update every hour
+    loopCnt = 0;
+    sendUptime = false;
+    prtUptime();
+  }
 
   delay(100);
 } // end of main loop

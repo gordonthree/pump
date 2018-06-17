@@ -3,7 +3,8 @@
     <head>
         <meta name="generator" content="HTML Tidy for HTML5 (experimental) for Windows https://github.com/w3c/tidy-html5/tree/c63cc39">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+        <link rel="stylesheet" type="text/css" href="style.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
         <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
         <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -18,9 +19,10 @@
                     Diagnostic Log
                 </h2>
                 <ul data-role="listview" id="diagList">
-                    <li>Newest entry first
-                    </li>
+                  <li><img src="message.png" alt="Message" class="ui-li-icon">Newest entry first</li>
+                  <li><button name="action" id="rebootbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Reboot</button></li>
                 </ul>
+
             </div>
             <div data-role="header">
                 <h1 id="headerText">
