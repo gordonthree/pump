@@ -234,13 +234,8 @@ void mqttPrintStr(char* _topic, char* myStr) {
 
 void mqttPrintInt(char* myTopic, int myNum) {
   char myStr[8];
-  sprintf(myStr, "%u", myNum);
+  sprintf(myStr, "%d", myNum);
   mqttPrintStr(myTopic, myStr);
-}
-
-void prtUptime() {
-  socketTxt("boottime=%d", bootTime);
-  mqttPrintInt("boottime", bootTime);
 }
 
 void doReset() { // reboot on command
@@ -352,10 +347,28 @@ void loadSettings() {
   socketTxt("settings loaded", 0);
 }
 
+void printUptime() {
+  sendUptime = false;
+  socketTxt("boottime=%d", bootTime);
+  mqttPrintInt("boottime", bootTime);
+}
+
 void printSettings() {
   char settings[100];
   sprintf(settings, "settings=%d,%d,%d,%d,%d", vstart, vend, vdur, vrest, vreps);
   webSocket.sendTXT(0, settings);
+}
+
+void printRSSI() {
+  int rssi = WiFi.RSSI();
+  socketTxt("rssi=%d", rssi);
+  mqttPrintInt("rssi", rssi);
+}
+
+void printVBAT() {
+  int vBat = i2c_wordread(VAC, ADCVBATT);
+  socketTxt("bat=%d", vBat);
+  mqttPrintInt("bat", vBat);
 }
 
 void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
@@ -623,6 +636,11 @@ void setup() {
   Serial.println("Pumping controller online");
 
   bootTime = getTime(); // save the time of last reboot
+
+  if (bootTime==0) {
+    delay(100);
+    bootTime = getTime(); // save the time of last reboot
+  }
 }
 
 void loop() {
@@ -665,10 +683,13 @@ void loop() {
 
   if (setReset) doReset;
 
-  if ((loopCnt++ > 3600) || sendUptime) { // update every hour
+  if (sendUptime) printUptime();
+
+  if (loopCnt++ > 150)  { // update every few loops
     loopCnt = 0;
-    sendUptime = false;
-    prtUptime();
+    printRSSI();
+    printVBAT();
+    mqttPrintInt("time", getTime());
   }
 
   delay(100);
