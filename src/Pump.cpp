@@ -68,8 +68,9 @@ uint8_t mqttControl = false;
 uint8_t sendPres = false;
 uint8_t sendUptime = true;
 uint16_t loopCnt = 0; // update on first run
+uint32_t bootTime = 0;
 
-long bootTime = 0, vstartTime = 0, vendTime = 0, vlastInt = 0;
+long vstartTime = 0, vendTime = 0, vlastInt = 0;
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -206,8 +207,8 @@ void i2c_scan() {
 
 }
 
-long getTime() {
-  long theTime=0;
+uint32_t getTime() {
+  uint32_t theTime=0;
   theTime = ntpClient.getUnixTime();
 
   return theTime;
@@ -411,7 +412,6 @@ void reconnect() {
     // Attempt to connect
     if (mqtt.connect(clientid)) {
       Serial.println("connected");
-      sendUptime = true;
       // Once connected, publish an announcement...
       mqttPrintStr("msg", "Hello, world!");
       // ... and resubscribe
@@ -604,11 +604,6 @@ void setup() {
   Serial.println("Pumping controller online");
 
   bootTime = getTime(); // save the time of last reboot
-
-  if (bootTime==0) {
-    delay(1000);
-    bootTime = getTime(); // save the time of last reboot
-  }
 }
 
 void loop() {
@@ -621,6 +616,10 @@ void loop() {
   server.handleClient();
   mqtt.loop();
   webSocket.loop();
+
+  if (bootTime==0) {
+    bootTime = getTime(); // save the time of last reboot
+  }
 
   if (!mqttControl) doPumping(); // if not under mqtt control, implement onboard controls
 
@@ -653,6 +652,8 @@ void loop() {
     printRSSI();
     printVBAT();
     mqttPrintInt("time", getTime());
+    mqttPrintInt("uptime", getTime() - bootTime);
+    mqttPrintInt("pres", thePres);
   }
 
   delay(100);
