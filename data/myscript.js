@@ -142,11 +142,11 @@ $(document).ready(function() {
 
               socket.onclose = function(){
               	message('<li class="action"><img src="error.png" alt="Error" class="ui-li-icon">Socket Status: '+socket.readyState+' (Closed)');
-                 $("#footerText").html("Connection lost!");
-                 $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
-                 setTimeout(connect(), 2000);
-                 $("#wifiIcon").replaceWith(wifi[5]);
-                 $("#batteryIcon").replaceWith(battery[4]);
+                setWiFi(5);
+                setBattery(4);
+                $("#footerText").html("Connection lost!");
+                $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
+                setTimeout(connect(), 2000);
               }
 
           } catch(exception){

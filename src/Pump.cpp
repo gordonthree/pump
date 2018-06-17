@@ -10,10 +10,6 @@
 #include <PubSubClient.h>
 #include <Hash.h>
 #include <EEPROM.h>
-#include <ESP8266httpUpdate.h>
-//#include <DNSServer.h>
-
-// Update these with values suitable for your network.
 
 //  I2C device address is 0 1 0 0   A2 A1 A0
 #define MCP 0x20
@@ -66,7 +62,6 @@ char txtMsg[32];
 uint8_t ledState = 0;
 char theURL[200];
 uint8_t setReset = false;
-uint8_t doUpdate = false;
 uint8_t setPolo = false;
 uint8_t sendTxt = false;
 uint8_t mqttControl = false;
@@ -246,28 +241,6 @@ void doReset() { // reboot on command
       delay(5000); // allow time for reboot
 }
 
-void httpUpdater() {
-  t_httpUpdate_return ret = ESPhttpUpdate.update(theURL);
-  //t_httpUpdate_return  ret = ESPhttpUpdate.update("https://server/file.bin");
-
-  switch(ret) {
-      case HTTP_UPDATE_FAILED:
-          char buf[60];
-          sprintf(buf, "HTTP_UPDATE_FAILED Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-          mqttPrintStr("msg", buf);
-
-          break;
-
-      case HTTP_UPDATE_NO_UPDATES:
-          mqttPrintStr("msg", "HTTP_UPDATE_NO_UPDATES");
-          break;
-
-      case HTTP_UPDATE_OK:
-          mqttPrintStr("msg", "HTTP_UPDATE_OK");
-          break;
-  }
-}
-
 void setPump(int pumpmin, int pumpmax, int pumppwr) {
 
   if (pumppwr != 0) {
@@ -277,7 +250,6 @@ void setPump(int pumpmin, int pumpmax, int pumppwr) {
   i2c_wordwrite(VAC, VACLOW, pumpmin);
   i2c_wordwrite(VAC, VACHI, pumpmax);
   i2c_wordwrite(VAC, VACONOFF, pumppwr);
-
 }
 
 bool loadFromSpiffs(String path){
@@ -398,10 +370,6 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
         setPump(0, 0, 0);
         strcpy(txtMsg, "pump off");
       }
-    }
-    else if (cmdTxt == "update") {
-      cmdVal.toCharArray(theURL, cmdVal.length()+1);
-      doUpdate = true;
     }
   } else { // handle action commands here
     if (cmdVal == "Start") {
@@ -638,7 +606,7 @@ void setup() {
   bootTime = getTime(); // save the time of last reboot
 
   if (bootTime==0) {
-    delay(100);
+    delay(1000);
     bootTime = getTime(); // save the time of last reboot
   }
 }
@@ -674,11 +642,6 @@ void loop() {
   if (sendTxt) {
     sendTxt = false;
     mqttPrintStr("msg", txtMsg);
-  }
-
-  if (doUpdate) { // test for http update flag, received url via mqtt
-    doUpdate = false; // clear flag
-    httpUpdater(); // call updater
   }
 
   if (setReset) doReset;
