@@ -237,6 +237,12 @@ void mqttPrintInt(char* myTopic, int myNum) {
   mqttPrintStr(myTopic, myStr);
 }
 
+void mqttPrintTxt(char* _topic, char* _str, int _num) {
+  char buf[100];
+  sprintf(buf, _str, _num);
+  mqttPrintStr(_topic, buf);
+}
+
 void doReset() { // reboot on command
       mqttPrintStr("msg", "Rebooting!");
       socketTxt("Rebooting!", 0);
@@ -407,11 +413,12 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
       socketTxt("session=pause", 0);
     }
     else if (cmdVal == "Reboot") doReset(); // reboot controller
-    else if (cmdVal = "Save")    saveSettings(); // save to eeprom
-    else if (cmdVal = "Load")    loadSettings(); // load from eeprom
-    else if (cmdVal = "Print")   printSettings(); // print config
+    else if (cmdVal == "Save")    saveSettings(); // save to eeprom
+    else if (cmdVal == "Load")    loadSettings(); // load from eeprom
+    else if (cmdVal == "Print")   printSettings(); // print config
   }
 }
+
 
 void callback(char* topic, byte* payload, unsigned int len) {
   char tmp[200];
