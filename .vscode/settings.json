@@ -1,0 +1,6 @@
+{
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\glmcl\\.platformio\\penv\\Scripts;C:\\Users\\glmcl\\.platformio\\penv;C:\\Python27\\;C:\\Python27\\Scripts;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\PuTTY\\;C:\\Users\\glmcl\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files (x86)\\Sophos\\Sophos SSL VPN Client\\bin;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Python27\\;C:\\Python27\\Scripts;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\PuTTY\\;C:\\Users\\glmcl\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files (x86)\\Sophos\\Sophos SSL VPN Client\\bin;C:\\Program Files\\Microsoft VS Code\\bin",
+        "PLATFORMIO_CALLER": "vscode"
+    }
+}

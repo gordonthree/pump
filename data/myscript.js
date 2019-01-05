@@ -92,7 +92,7 @@ $(document).ready(function() {
                   var secs =cmds[1]-(mins * 60);
                   if (secs < 10) secs="0"+secs;
                   $("#footerText").html("Session Running<br><small>" +mins +":"+ secs+ " rest time remaining</small>");
-                  message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Start rest period');
+                  // message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Start rest period');
                   break;
                 case 'remain':
                   var mins =parseInt(cmds[1] / 60);
@@ -130,6 +130,8 @@ $(document).ready(function() {
                   $( "#vdur" ).val(settings[2]).slider("refresh");
                   $( "#vrest" ).val(settings[3]).slider("refresh");
                   $( "#vreps" ).val(settings[4]).slider("refresh");
+                  $( "#vpause" ).val(settings[5]).slider("refresh");
+                  $( "#vincr" ).val(settings[6]).slider("refresh");
 
                   message('<li class="action"><img src="action.png" alt="Action" class="ui-li-icon">Settings Updated');
                   break;

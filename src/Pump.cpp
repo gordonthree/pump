@@ -47,10 +47,13 @@ int vend = 300;
 int vdur = 8;
 int vrest = 5;
 int vreps = 4;
+int vrepsLeft = 0;
 int vmin = 0;
 int vmax = 0;
 int vdiff = 0;
 int vinterval = 0;
+int vpause = 0;
+int vincr = 0;
 int pumpEnable = 0;
 uint8_t vrunning = 0;
 char i2cbuff[16];
@@ -308,6 +311,8 @@ void saveSettings() {
   eeByteWrite(4, vdur);
   eeByteWrite(5, vrest);
   eeByteWrite(6, vreps);
+  eeByteWrite(7, vpause); // 2 bytes
+  eeByteWrite(9, vincr); // 1 byte  
   socketTxt("settings saved",0);
 }
 
@@ -317,6 +322,9 @@ void loadSettings() {
   vdur   = eeByteRead(4);
   vrest  = eeByteRead(5);
   vreps  = eeByteRead(6);
+  vpause = eeByteRead(7);
+  vincr  = eeByteRead(9);    
+  vrunning = eeByteRead(10);
   socketTxt("settings loaded", 0);
 }
 
@@ -328,7 +336,7 @@ void printUptime() {
 
 void printSettings() {
   char settings[100];
-  sprintf(settings, "settings=%d,%d,%d,%d,%d", vstart, vend, vdur, vrest, vreps);
+  sprintf(settings, "settings=%d,%d,%d,%d,%d,%d,%d", vstart, vend, vdur, vrest, vreps, vpause, vincr);
   webSocket.sendTXT(0, settings);
 }
 
@@ -361,6 +369,8 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
     else if (cmdTxt == "marco")  setPolo = true;
     else if (cmdTxt == "vmin")   vmin = i;
     else if (cmdTxt == "vmax")   vmax = i;
+    else if (cmdTxt == "vincr")  vincr = i;
+    else if (cmdTxt == "vpause") vpause = i;
     else if (cmdTxt == "vpwr") {
       if (i==1) {
         mqttControl = true;
@@ -371,12 +381,15 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
         setPump(0, 0, 0);
         strcpy(txtMsg, "pump off");
       }
-    }
-  } else { // handle action commands here
+    } // end of configuration commands
+  } 
+  else { // handle action commands here
     if (cmdVal == "Start") {
       vstartTime = getTime(); // record start time
       vlastInt = getTime();
+      vrepsLeft = vreps; // transfer reps into temporary use counter.
       vrunning = 1;
+      eeByteWrite(10, vrunning); // store running state incase of reboot
 
       socketTxt("session=start", 0);
       saveSettings(); // record these pump settings
@@ -384,6 +397,8 @@ void handleMsg(char* cmdStr) { // handle commands from mqtt or websockets
 
     if (cmdVal == "Stop") { // stop session
       vrunning = 0;
+      vrepsLeft = 0;
+      eeByteWrite(10, vrunning); // store running state incase of reboot
       socketTxt("session=stop", 0);
     } else
 
@@ -495,14 +510,21 @@ void doPumping() {
     socketTxt("suction=%d", vmax);
   } else {
     if (vrunning == 2) { // pump session already started
-      if (getTime() >= vendTime) { // pump session ended
+      if (getTime() >= vendTime) { // pump session ending
         setPump(0, 0, 0); // stop pump
-        if (vreps > 1) { // multiple reps requested
+        if (vrepsLeft > 1) { // multiple reps requested
+          if (vpause > 0) { // rest period between pumping maintains some pressure
+            setPump(vpause, vpause+20, 1); // set pump to lower "pause" pressure
+          } else { // turn off pump
+            setPump(0, 0, 0); // stop pump
+          }    
           //socketTxt("rest=%d", vrest);
           vlastInt = getTime() + (vrest * 60); // new start time is now plus rest period in seconds
           socketTxt("rest=%d", vlastInt - getTime());
-          vreps--; // one less rep
+          vrepsLeft--; // one less rep
           socketTxt("repsremain=%d", vreps);
+          vstart = vstart + vincr; // increase pressure if indicated
+          vend = vend + vincr; // same as above        
           vrunning = 1; // go back to startup condition
         } else { // no more reps
           socketTxt("session=complete", 0);
@@ -604,6 +626,8 @@ void setup() {
   Serial.println("Pumping controller online");
 
   bootTime = getTime(); // save the time of last reboot
+
+  if (vrunning==1) handleMsg("Start");
 }
 
 void loop() {
