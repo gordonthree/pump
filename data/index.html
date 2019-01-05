@@ -34,21 +34,21 @@
             <div data-role="main" class="ui-content">
                 <div class="ui-field-contain" id="sliders">
                     <div data-role="rangeslider">
-                        <label for="vstart">Pressure:</label>
-                        	<input type="range" data-highlight="true" name="vstart" id="vstart" value="150" min="100" step="10" max="1000" class="numbox">
-                    	<label for="vend">Pressure:</label>
-                        	<input type="range" data-highlight="true" name="vend" id="vend" value="350" min="200" step="10" max="1000" class="numbox">
+                        <label for="vstart">Pres:</label>
+                        	<input type="range" data-highlight="true" name="vstart" id="vstart" value="150" min="100" step="5" max="1000" class="numbox">
+                    	<label for="vend">Pres:</label>
+                        	<input type="range" data-highlight="true" name="vend" id="vend" value="350" min="200" step="5" max="1000" class="numbox">
                     </div>
                     <label for="vdur">Dur:</label>
                     	<input type="range" name="vdur" id="vdur" value="10" min="2" max="60" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
                 	<label for="vrest">Rest:</label>
                 		<input type="range" name="vrest" id="vrest" value="10" min="0" max="60" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
             		<label for="vreps"> Reps:</label>
-            			<input type="range" name="vreps" id="vreps" value="4" min="1" max="10" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
+            			<input type="range" name="vreps" id="vreps" value="1" min="1" max="50" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
                     <label for="vpause">Pause:</label> 
-                        <input type="range" name="vpause" id="vpause" value="0" min="0" max="300" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
+                        <input type="range" name="vpause" id="vpause" value="0" min="0" max="300" step="5" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">
                     <label for="vincr">Incr:</label> 
-                        <input type="range" name="vincr" id="vincr" value="0" min="0" max="50" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">     
+                        <input type="range" name="vincr" id="vincr" value="0" min="0" max="50" step="5" data-highlight="true" data-popup-enabled="true" data-show-value="true" class="numbox">     
                 </div>
                 <div id="action" data-role="controlgroup" data-type="horizontal">
                     <button name="action" id="startbtn" class="ui-btn ui-shadow ui-corner-all ctrlbtn">Start</button>

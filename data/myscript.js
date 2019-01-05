@@ -146,12 +146,15 @@ $(document).ready(function() {
               	message('<li class="action"><img src="error.png" alt="Error" class="ui-li-icon">Socket Status: '+socket.readyState+' (Closed)');
                 setWiFi(5);
                 setBattery(4);
-                $("#footerText").html("Connection lost!");
+                $("#footerText").html("Connection lost");
                 $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
                 setTimeout(connect(), 2000);
               }
 
           } catch(exception){
+             $("#footerText").html("Connection lost");
+             $("#headerText").html("Pumping Session<br><small>Disconnected</small>");
+             setTimeout(connect(), 2000);
              message('<li class="action"><img src="error.png" alt="Error" class="ui-li-icon">Error: '+exception);
           }
 
